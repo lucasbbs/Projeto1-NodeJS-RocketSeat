@@ -8,10 +8,10 @@ app.use(express.json());
 
 const customers = [];
 
-//Middleware
+//Middlewares
 
 function verifyIfExistsAccountCPF(req, res, next) {
-  const { cpf } = req.params;
+  const { cpf } = req.headers;
 
   const customer = customers.find((customer) => customer.cpf === cpf);
 
@@ -46,10 +46,26 @@ app.post("/account", (req, res) => {
   return res.status(201).json({ customers });
 });
 
-app.get("/statements/:cpf/", verifyIfExistsAccountCPF, (req, res) => {
+app.get("/statements", verifyIfExistsAccountCPF, (req, res) => {
   const { customer } = req;
 
   return res.json(customer.statement);
+});
+
+app.get("/statementsdate/:cpf", verifyIfExistsAccountCPF, (req, res) => {
+  const { customer } = req;
+  const { date } = req.query;
+  console.log(date);
+
+  const dateFormat = new Date(date + " 00:00");
+
+  const statement = customer.statement.filter(
+    (statement) =>
+      statement.created_at.toDateString() ===
+      new Date(dateFormat).toDateString()
+  );
+
+  return res.json(statement);
 });
 
 app.put("/deposit/:cpf/", verifyIfExistsAccountCPF, (req, res) => {
